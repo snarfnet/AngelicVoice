@@ -1,0 +1,82 @@
+name: Screenshots and Submit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  shots:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Select Xcode
+      run: |
+        XCODE_APP=$(ls /Applications/ | grep "^Xcode_" | sort -V | tail -1)
+        sudo xcode-select -s "/Applications/$XCODE_APP"
+        xcodebuild -version
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate project
+      run: xcodegen generate
+
+    - name: Capture Screenshots
+      run: |
+        set -e
+        IPHONE=$(xcrun simctl list devices available | grep -oE "iPhone 16 Pro Max" | head -1)
+        [ -z "$IPHONE" ] && IPHONE=$(xcrun simctl list devices available | grep -oE "iPhone [0-9]+ Pro Max" | tail -1)
+        echo "iPhone: $IPHONE"
+        xcodebuild build -scheme AngelicVoice -configuration Release \
+          -destination "platform=iOS Simulator,name=$IPHONE" \
+          -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO | tail -3
+        APP=$(find build/sim/Build/Products -maxdepth 3 -name "*.app" | head -1)
+        xcrun simctl boot "$IPHONE" || true
+        xcrun simctl bootstatus "$IPHONE"
+        xcrun simctl install "$IPHONE" "$APP"
+        xcrun simctl launch "$IPHONE" com.tokyonasu.AngelicVoice --demo || true
+        mkdir -p shots/iphone
+        sleep 14
+        xcrun simctl io "$IPHONE" screenshot shots/iphone/1.png
+        IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro 13-inch \(M[0-9]+\)" | head -1)
+        [ -z "$IPAD" ] && IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro [0-9]+-inch \(M[0-9]+\)" | head -1)
+        [ -z "$IPAD" ] && IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro[^(]*\(M[0-9]+\)" | head -1)
+        echo "iPad: $IPAD"
+        xcodebuild build -scheme AngelicVoice -configuration Release \
+          -destination "platform=iOS Simulator,name=$IPAD" \
+          -derivedDataPath build/simpad CODE_SIGNING_ALLOWED=NO | tail -3
+        APPPAD=$(find build/simpad/Build/Products -maxdepth 3 -name "*.app" | head -1)
+        xcrun simctl boot "$IPAD" || true
+        xcrun simctl bootstatus "$IPAD"
+        xcrun simctl install "$IPAD" "$APPPAD"
+        xcrun simctl launch "$IPAD" com.tokyonasu.AngelicVoice --demo || true
+        mkdir -p shots/ipad
+        sleep 14
+        xcrun simctl io "$IPAD" screenshot shots/ipad/1.png
+        ls -la shots/iphone shots/ipad
+
+    - name: Upload screenshot artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: screenshots
+        path: shots/
+
+    - name: Set up ASC API Key
+      env:
+        ASC_API_KEY_CONTENT: ${{ secrets.ASC_API_KEY_CONTENT }}
+      run: |
+        mkdir -p ~/.appstoreconnect/private_keys
+        echo "$ASC_API_KEY_CONTENT" | base64 -D > ~/.appstoreconnect/private_keys/AuthKey_WDXGY9WX55.p8
+
+    - name: Install PyJWT
+      run: pip3 install --break-system-packages PyJWT requests
+
+    - name: Upload Screenshots to ASC
+      env:
+        ASC_LOC_ID: c9a19e08-6914-4ace-96cd-dd0f2addd9e0
+      run: python3 scripts/upload_screenshots.py
+
+    - name: Submit for Review
+      env:
+        ASC_APP_ID: '6796853280'
+      run: python3 scripts/submit_review.py

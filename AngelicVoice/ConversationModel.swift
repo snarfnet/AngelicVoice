@@ -24,20 +24,37 @@ final class ConversationModel: ObservableObject {
 
     let availability: AngelSession.Availability
     private let angel = AngelSession()
+    private let isDemo = ProcessInfo.processInfo.arguments.contains("--demo")
 
     init() {
-        availability = angel.availability
+        availability = isDemo ? .ready : angel.availability
+        if isDemo { loadDemo() }
     }
 
     /// 起動時、天使が先に語りかける。
     func begin() {
-        guard messages.isEmpty else { return }
+        guard !isDemo, messages.isEmpty else { return }
         let c = Copy.current
         messages.append(.angel(
             enochian: EnochianRenderer.render(c.greetingEN),
             english: c.greetingEN,
             japanese: c.greetingJA
         ))
+    }
+
+    /// スクリーンショット用の代表的な会話。App Store掲載画像専用（--demo起動時のみ）。
+    private func loadDemo() {
+        let c = Copy.current
+        func angelMsg(_ en: String, _ ja: String) -> ChatMessage {
+            .angel(enochian: EnochianRenderer.render(en), english: en, japanese: ja)
+        }
+        messages = [
+            angelMsg(c.greetingEN, c.greetingJA),
+            .you("What should I hold in my heart?"),
+            angelMsg("Hold quiet light within your heart.", "心のうちに静かな光を抱きなさい。"),
+            .you("Will the storm pass?"),
+            angelMsg("Storms pass. Your calm remains.", "嵐は過ぎる。あなたの静けさは残る。")
+        ]
     }
 
     /// 求道者の言葉を送り、天使の応答を得る。
