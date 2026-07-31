@@ -50,14 +50,10 @@ jobs:
 
         IPHONE=$(xcrun simctl list devices available | grep -oE "iPhone 16 Pro Max" | head -1)
         [ -z "$IPHONE" ] && IPHONE=$(xcrun simctl list devices available | grep -oE "iPhone [0-9]+ Pro Max" | tail -1)
-        IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro 13-inch \(M[0-9]+\)" | head -1)
-        [ -z "$IPAD" ] && IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro [0-9]+-inch \(M[0-9]+\)" | head -1)
-        [ -z "$IPAD" ] && IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro[^(]*\(M[0-9]+\)" | head -1)
-        echo "iPhone=$IPHONE  iPad=$IPAD"
+        echo "iPhone=$IPHONE"
 
         capture "$IPHONE" shots/iphone/1.png
-        capture "$IPAD" shots/ipad/1.png
-        ls -la shots/iphone shots/ipad || true
+        ls -la shots/iphone || true
 
     - name: Upload screenshot artifacts
       uses: actions/upload-artifact@v4
