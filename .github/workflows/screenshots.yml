@@ -27,7 +27,7 @@ jobs:
         echo "=== SDKs ==="; xcodebuild -showsdks 2>/dev/null | grep -i simulator || true
         echo "=== iOS runtimes ==="; xcrun simctl list runtimes | grep -i ios || true
         # Build once for a generic simulator; the same .app installs on iPhone and iPad sims.
-        timeout 1500 xcodebuild build -scheme AngelicVoice -configuration Release \
+        xcodebuild build -scheme AngelicVoice -configuration Release \
           -destination "generic/platform=iOS Simulator" \
           -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO | tail -5
         APP=$(find build/sim/Build/Products -maxdepth 3 -name "*.app" | head -1)
@@ -39,7 +39,7 @@ jobs:
           echo "device '$NAME' -> udid=$UDID"
           [ -z "$UDID" ] && { echo "  skip (device not found)"; return 0; }
           xcrun simctl boot "$UDID" || true
-          timeout 240 xcrun simctl bootstatus "$UDID" || true
+          xcrun simctl bootstatus "$UDID" || true
           xcrun simctl install "$UDID" "$APP"
           xcrun simctl launch "$UDID" com.tokyonasu.AngelicVoice --demo || true
           mkdir -p "$(dirname "$OUT")"
