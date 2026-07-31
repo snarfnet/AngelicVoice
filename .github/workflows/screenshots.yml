@@ -24,36 +24,40 @@ jobs:
     - name: Capture Screenshots
       run: |
         set -e
+        echo "=== SDKs ==="; xcodebuild -showsdks 2>/dev/null | grep -i simulator || true
+        echo "=== iOS runtimes ==="; xcrun simctl list runtimes | grep -i ios || true
+        # Build once for a generic simulator; the same .app installs on iPhone and iPad sims.
+        timeout 1500 xcodebuild build -scheme AngelicVoice -configuration Release \
+          -destination "generic/platform=iOS Simulator" \
+          -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO | tail -5
+        APP=$(find build/sim/Build/Products -maxdepth 3 -name "*.app" | head -1)
+        echo "APP=$APP"; [ -z "$APP" ] && { echo "no .app built"; exit 1; }
+
+        capture() {
+          NAME="$1"; OUT="$2"
+          UDID=$(xcrun simctl list devices available | grep -E "$NAME \(" | head -1 | grep -oiE "[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}")
+          echo "device '$NAME' -> udid=$UDID"
+          [ -z "$UDID" ] && { echo "  skip (device not found)"; return 0; }
+          xcrun simctl boot "$UDID" || true
+          timeout 240 xcrun simctl bootstatus "$UDID" || true
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch "$UDID" com.tokyonasu.AngelicVoice --demo || true
+          mkdir -p "$(dirname "$OUT")"
+          sleep 14
+          xcrun simctl io "$UDID" screenshot "$OUT" || true
+          xcrun simctl shutdown "$UDID" || true
+        }
+
         IPHONE=$(xcrun simctl list devices available | grep -oE "iPhone 16 Pro Max" | head -1)
         [ -z "$IPHONE" ] && IPHONE=$(xcrun simctl list devices available | grep -oE "iPhone [0-9]+ Pro Max" | tail -1)
-        echo "iPhone: $IPHONE"
-        xcodebuild build -scheme AngelicVoice -configuration Release \
-          -destination "platform=iOS Simulator,name=$IPHONE" \
-          -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO | tail -3
-        APP=$(find build/sim/Build/Products -maxdepth 3 -name "*.app" | head -1)
-        xcrun simctl boot "$IPHONE" || true
-        xcrun simctl bootstatus "$IPHONE"
-        xcrun simctl install "$IPHONE" "$APP"
-        xcrun simctl launch "$IPHONE" com.tokyonasu.AngelicVoice --demo || true
-        mkdir -p shots/iphone
-        sleep 14
-        xcrun simctl io "$IPHONE" screenshot shots/iphone/1.png
         IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro 13-inch \(M[0-9]+\)" | head -1)
         [ -z "$IPAD" ] && IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro [0-9]+-inch \(M[0-9]+\)" | head -1)
         [ -z "$IPAD" ] && IPAD=$(xcrun simctl list devices available | grep -oE "iPad Pro[^(]*\(M[0-9]+\)" | head -1)
-        echo "iPad: $IPAD"
-        xcodebuild build -scheme AngelicVoice -configuration Release \
-          -destination "platform=iOS Simulator,name=$IPAD" \
-          -derivedDataPath build/simpad CODE_SIGNING_ALLOWED=NO | tail -3
-        APPPAD=$(find build/simpad/Build/Products -maxdepth 3 -name "*.app" | head -1)
-        xcrun simctl boot "$IPAD" || true
-        xcrun simctl bootstatus "$IPAD"
-        xcrun simctl install "$IPAD" "$APPPAD"
-        xcrun simctl launch "$IPAD" com.tokyonasu.AngelicVoice --demo || true
-        mkdir -p shots/ipad
-        sleep 14
-        xcrun simctl io "$IPAD" screenshot shots/ipad/1.png
-        ls -la shots/iphone shots/ipad
+        echo "iPhone=$IPHONE  iPad=$IPAD"
+
+        capture "$IPHONE" shots/iphone/1.png
+        capture "$IPAD" shots/ipad/1.png
+        ls -la shots/iphone shots/ipad || true
 
     - name: Upload screenshot artifacts
       uses: actions/upload-artifact@v4
