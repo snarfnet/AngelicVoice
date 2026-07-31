@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "マイクを使って、あなたの声を天使への言葉として受け取ります。";
+"NSSpeechRecognitionUsageDescription" = "話しかけた言葉を文字に変換して天使に伝えるために使います。";
+"CFBundleDisplayName" = "天使の声";

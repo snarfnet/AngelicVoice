@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-check:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          XCODE_APP=$(ls /Applications/ | grep "^Xcode_" | sort -V | tail -1)
+          sudo xcode-select -s "/Applications/$XCODE_APP"
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build (no signing)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project AngelicVoice.xcodeproj \
+            -scheme AngelicVoice \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM=""

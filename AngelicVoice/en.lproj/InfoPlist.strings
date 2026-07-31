@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "The microphone lets your spoken words reach the angel.";
+"NSSpeechRecognitionUsageDescription" = "Your speech is turned into text so the angel can receive it.";
+"CFBundleDisplayName" = "Angelic Voice";

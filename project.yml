@@ -1,0 +1,42 @@
+name: AngelicVoice
+options:
+  bundleIdPrefix: com.tokyonasu
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.tokyonasu.AngelicVoice
+    MARKETING_VERSION: 1.0
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: 5.9
+    DEVELOPMENT_TEAM: 83VGKGSQUH
+    CODE_SIGN_STYLE: Automatic
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    TARGETED_DEVICE_FAMILY: 1
+targets:
+  AngelicVoice:
+    type: application
+    platform: iOS
+    settings:
+      base:
+        TARGETED_DEVICE_FAMILY: "1"
+    sources:
+      - AngelicVoice
+    info:
+      path: AngelicVoice/Info.plist
+      properties:
+        CFBundleDisplayName: 天使の声
+        CFBundleDevelopmentRegion: ja
+        CFBundleLocalizations:
+          - ja
+          - en
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        UILaunchScreen: {}
+        UIRequiresFullScreen: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIUserInterfaceStyle: Dark
+        ITSAppUsesNonExemptEncryption: false
+        NSMicrophoneUsageDescription: マイクを使って、あなたの声を天使への言葉として受け取ります。
+        NSSpeechRecognitionUsageDescription: 話しかけた言葉を文字に変換して天使に伝えるために使います。
