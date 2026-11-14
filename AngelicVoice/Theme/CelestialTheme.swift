@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreText
 
 // MARK: - Celestial Color Palette
 enum Celestial {
@@ -149,8 +150,8 @@ struct EnochianLetterView: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            Text(letter.glyph)
-                .font(.system(size: size, weight: .light))
+            Text(letter.latin)
+                .font(EnochianFont.font(size))
                 .foregroundColor(Celestial.runeGlow)
 
             Text(letter.name)
@@ -169,3 +170,28 @@ extension View {
         modifier(CelestialGlow(color: color))
     }
 }
+
+// MARK: - Enochian script and language
+
+enum EnochianFont {
+    static let name = "EnochianDee"
+    private static var registered = false
+
+    /// Glyphs traced from Dee's own table (Sloane MS 3188); mapped onto Latin capitals.
+    static func font(_ size: CGFloat) -> Font {
+        if !registered {
+            registered = true
+            if let url = Bundle.main.url(forResource: name, withExtension: "ttf") {
+                CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+            }
+        }
+        return .custom(name, fixedSize: size)
+    }
+}
+
+/// Japanese when the device prefers Japanese, otherwise English.
+func L(_ ja: String, _ en: String) -> String {
+    (Locale.preferredLanguages.first ?? "en").hasPrefix("ja") ? ja : en
+}
+
+var isJapanese: Bool { L("ja", "en") == "ja" }

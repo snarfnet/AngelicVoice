@@ -5,7 +5,8 @@ import Speech
 /// マイク音声を SFSpeechRecognizer で文字起こしする。ユーザーの発話専用。
 @MainActor
 final class SpeechInput: ObservableObject {
-    enum Status { case idle, listening, denied, unavailable }
+    /// failed = 録音・認識を始められなかった（画面で理由を伝え、文字入力を案内する）
+    enum Status { case idle, listening, denied, failed }
 
     @Published private(set) var status: Status = .idle
     @Published private(set) var transcript: String = ""
@@ -42,38 +43,48 @@ final class SpeechInput: ObservableObject {
     /// 録音を停止して、確定した文字列を返す。
     @discardableResult
     func stop() -> String {
-        audioEngine.stop()
-        audioEngine.inputNode.removeTap(onBus: 0)
-        request?.endAudio()
-        task?.finish()
-        request = nil
-        task = nil
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        teardown()
         if status == .listening { status = .idle }
         return transcript
     }
 
+    private func teardown() {
+        if audioEngine.isRunning { audioEngine.stop() }
+        audioEngine.inputNode.removeTap(onBus: 0)
+        request?.endAudio()
+        task?.cancel()
+        request = nil
+        task = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    private func fail() {
+        teardown()
+        status = .failed
+    }
+
     private func beginSession() {
-        guard let recognizer, recognizer.isAvailable else { status = .unavailable; return }
+        guard let recognizer, recognizer.isAvailable else { fail(); return }
 
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.duckOthers, .defaultToSpeaker])
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
-            status = .unavailable
+            fail()
             return
         }
 
         let req = SFSpeechAudioBufferRecognitionRequest()
         req.shouldReportPartialResults = true
-        if recognizer.supportsOnDeviceRecognition {
-            req.requiresOnDeviceRecognition = true
-        }
+        // オンデバイス認識を強制しない。音声認識のモデルが端末に無い場合や
+        // 音声入力がオフの端末では、強制すると即座に失敗する（2.1 で却下された原因）。
+        req.requiresOnDeviceRecognition = false
         request = req
 
         let input = audioEngine.inputNode
         let format = input.outputFormat(forBus: 0)
+        guard format.sampleRate > 0, format.channelCount > 0 else { fail(); return }
         input.removeTap(onBus: 0)
         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             self?.request?.append(buffer)
@@ -83,7 +94,7 @@ final class SpeechInput: ObservableObject {
         do {
             try audioEngine.start()
         } catch {
-            status = .unavailable
+            fail()
             return
         }
         status = .listening
@@ -91,10 +102,14 @@ final class SpeechInput: ObservableObject {
         task = recognizer.recognitionTask(with: req) { [weak self] result, error in
             guard let self else { return }
             Task { @MainActor in
+                // 停止ボタンで終えたあとのキャンセル通知は無視する
+                guard self.status == .listening else { return }
                 if let result {
                     self.transcript = result.bestTranscription.formattedString
                 }
-                if error != nil || (result?.isFinal ?? false) {
+                if error != nil && self.transcript.isEmpty {
+                    self.fail()
+                } else if error != nil || (result?.isFinal ?? false) {
                     self.stop()
                 }
             }

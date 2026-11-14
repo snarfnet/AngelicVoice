@@ -3,6 +3,8 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var convo = ConversationModel()
     @StateObject private var speech = SpeechInput()
+    @State private var typed = ""
+    @FocusState private var typing: Bool
 
     private let copy = Copy.current
 
@@ -18,6 +20,10 @@ struct ContentView: View {
             }
         }
         .onAppear { convo.begin() }
+        // 録音が終わったら（停止ボタンでも、認識が自然に終わっても）、聞き取った言葉を送る
+        .onChange(of: speech.status) { old, new in
+            if old == .listening && new == .idle { convo.send(speech.transcript) }
+        }
     }
 
     // MARK: - 交信画面
@@ -92,7 +98,14 @@ struct ContentView: View {
                 .foregroundColor(Celestial.angelGold.opacity(0.8))
                 .tracking(3)
 
-            // エノク語（主）
+            // エノク文字（ディーの字形）
+            Text(message.enochian)
+                .font(EnochianFont.font(26))
+                .foregroundColor(Celestial.runeGlow)
+                .lineSpacing(6)
+                .celestialGlow(Celestial.glowBlue)
+
+            // エノク語（ローマ字）
             Text(message.enochian)
                 .font(.system(size: 20, weight: .light))
                 .foregroundColor(Celestial.runeGlow)
@@ -158,8 +171,8 @@ struct ContentView: View {
                     .foregroundColor(Celestial.starWhite)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20)
-            } else if speech.status == .denied {
-                Text(copy.permissionDenied)
+            } else if speech.status == .denied || speech.status == .failed {
+                Text(speech.status == .denied ? copy.permissionDenied : copy.speechFailed)
                     .font(.system(size: 12, weight: .light))
                     .foregroundColor(Celestial.angelGold.opacity(0.8))
                     .multilineTextAlignment(.center)
@@ -194,16 +207,48 @@ struct ContentView: View {
                 .font(.system(size: 11, weight: .light))
                 .foregroundColor(Celestial.faintStar)
                 .tracking(1)
+
+            textInput
         }
         .padding(.top, 10)
         .padding(.bottom, 24)
     }
 
+    /// 声が使えない時・使いたくない時のための文字入力。
+    private var textInput: some View {
+        HStack(spacing: 8) {
+            TextField(copy.typeHere, text: $typed)
+                .focused($typing)
+                .submitLabel(.send)
+                .onSubmit(sendTyped)
+                .font(.system(size: 15))
+                .foregroundColor(Celestial.starWhite)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 18).fill(Celestial.deepIndigo.opacity(0.7)))
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Celestial.glowBlue.opacity(0.3), lineWidth: 1))
+            Button(action: sendTyped) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundColor(typed.trimmingCharacters(in: .whitespaces).isEmpty ? Celestial.faintStar.opacity(0.4) : Celestial.glowCyan)
+            }
+            .disabled(typed.trimmingCharacters(in: .whitespaces).isEmpty || convo.isThinking)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
+    }
+
+    private func sendTyped() {
+        let text = typed
+        typed = ""
+        typing = false
+        convo.send(text)
+    }
+
     private func toggleMic() {
         switch speech.status {
         case .listening:
-            let text = speech.stop()
-            convo.send(text)
+            speech.stop()   // the transcript is sent from onChange(of: speech.status)
         default:
             speech.start()
         }

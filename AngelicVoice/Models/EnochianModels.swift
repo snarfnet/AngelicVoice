@@ -2,14 +2,16 @@ import Foundation
 
 // MARK: - Enochian Letter
 struct EnochianLetter: Identifiable, Hashable {
-    let id = UUID()
-    let glyph: String      // Unicode/display character
-    let name: String        // Letter name (romanized)
+    let order: Int          // position in Dee's table
+    let name: String        // Dee's name for the letter
     let nameJa: String      // カタカナ読み
-    let english: String     // English equivalent
-    let value: Int          // Numerical value
-    let meaning: String     // Symbolic meaning (English)
-    let meaningJa: String   // Symbolic meaning (Japanese)
+    let latin: String       // Latin value; the EnochianDee font draws the glyph for it
+    let alternates: String  // later equivalents (K for Veh, Y/J for Gon, U/W for Van)
+    let gdValue: Int        // number in later Golden Dawn / Crowley tables
+    var id: Int { order }
+
+    /// "C / K", "I / Y / J"
+    var latinLabel: String { ([latin] + alternates.map(String.init)).joined(separator: " / ") }
 }
 
 // MARK: - Enochian Word

@@ -2,28 +2,31 @@ import Foundation
 
 struct EnochianData {
     // MARK: - Enochian Alphabet (21 letters)
+    // Order, names and Latin values follow Dee's own table (British Library Sloane MS 3188, 6 May 1583),
+    // which he wrote right to left. K, J/Y and U/W are later conventions for Veh, Gon and Van.
+    // gdValue: the numbers given in later Golden Dawn / Crowley tables (not in Dee).
     static let alphabet: [EnochianLetter] = [
-        EnochianLetter(glyph: "𐤀", name: "Un",    nameJa: "ウン",   english: "A",     value: 6,  meaning: "Beginning",     meaningJa: "始"),
-        EnochianLetter(glyph: "𐤁", name: "Pe",    nameJa: "ペ",    english: "B",     value: 5,  meaning: "Voice",          meaningJa: "声"),
-        EnochianLetter(glyph: "𐤂", name: "Veh",   nameJa: "ヴェ",  english: "C/K",   value: 2,  meaning: "Spirit",         meaningJa: "霊"),
-        EnochianLetter(glyph: "𐤃", name: "Gal",   nameJa: "ガル",  english: "D",     value: 8,  meaning: "Transformation", meaningJa: "変"),
-        EnochianLetter(glyph: "𐤄", name: "Graph", nameJa: "グラフ", english: "E",     value: 3,  meaning: "Fire",           meaningJa: "炎"),
-        EnochianLetter(glyph: "𐤅", name: "Orth",  nameJa: "オルス", english: "F",     value: 9,  meaning: "Creation",       meaningJa: "創"),
-        EnochianLetter(glyph: "𐤆", name: "Ged",   nameJa: "ゲド",  english: "G",     value: 1,  meaning: "Gathering",      meaningJa: "集"),
-        EnochianLetter(glyph: "𐤇", name: "Na",    nameJa: "ナ",    english: "H",     value: 4,  meaning: "Lord",           meaningJa: "主"),
-        EnochianLetter(glyph: "𐤈", name: "Gon",   nameJa: "ゴン",  english: "I/Y",   value: 7,  meaning: "Light",          meaningJa: "光"),
-        EnochianLetter(glyph: "𐤉", name: "Ur",    nameJa: "ウル",  english: "L",     value: 10, meaning: "Justice",        meaningJa: "義"),
-        EnochianLetter(glyph: "𐤊", name: "Tal",   nameJa: "タル",  english: "M",     value: 12, meaning: "Water",          meaningJa: "水"),
-        EnochianLetter(glyph: "𐤋", name: "Drux",  nameJa: "ドルクス", english: "N",  value: 14, meaning: "Power",          meaningJa: "力"),
-        EnochianLetter(glyph: "𐤌", name: "Pal",   nameJa: "パル",  english: "O",     value: 22, meaning: "Darkness",       meaningJa: "闇"),
-        EnochianLetter(glyph: "𐤍", name: "Med",   nameJa: "メド",  english: "P",     value: 20, meaning: "Mind",           meaningJa: "智"),
-        EnochianLetter(glyph: "𐤎", name: "Don",   nameJa: "ドン",  english: "Q",     value: 16, meaning: "Heaven",         meaningJa: "天"),
-        EnochianLetter(glyph: "𐤏", name: "Ceph",  nameJa: "セフ",  english: "R",     value: 11, meaning: "Sun",            meaningJa: "陽"),
-        EnochianLetter(glyph: "𐤐", name: "Van",   nameJa: "ヴァン", english: "S",    value: 15, meaning: "Truth",          meaningJa: "真"),
-        EnochianLetter(glyph: "𐤑", name: "Fam",   nameJa: "ファム", english: "T",    value: 13, meaning: "Earth",          meaningJa: "地"),
-        EnochianLetter(glyph: "𐤒", name: "Gisg",  nameJa: "ギスグ", english: "U/V/W", value: 18, meaning: "Strength",     meaningJa: "剛"),
-        EnochianLetter(glyph: "𐤓", name: "Mals",  nameJa: "マルス", english: "X",    value: 17, meaning: "Ending",         meaningJa: "終"),
-        EnochianLetter(glyph: "𐤔", name: "Ger",   nameJa: "ゲル",  english: "Z",     value: 19, meaning: "Wisdom",         meaningJa: "慧"),
+        EnochianLetter(order: 1, name: "Pa", nameJa: "パ", latin: "B", alternates: "", gdValue: 5),
+        EnochianLetter(order: 2, name: "Veh", nameJa: "ヴェー", latin: "C", alternates: "K", gdValue: 300),
+        EnochianLetter(order: 3, name: "Ged", nameJa: "ゲド", latin: "G", alternates: "", gdValue: 9),
+        EnochianLetter(order: 4, name: "Gal", nameJa: "ガル", latin: "D", alternates: "", gdValue: 4),
+        EnochianLetter(order: 5, name: "Or", nameJa: "オル", latin: "F", alternates: "", gdValue: 300),
+        EnochianLetter(order: 6, name: "Un", nameJa: "ウン", latin: "A", alternates: "", gdValue: 6),
+        EnochianLetter(order: 7, name: "Graph", nameJa: "グラフ", latin: "E", alternates: "", gdValue: 7),
+        EnochianLetter(order: 8, name: "Tal", nameJa: "タル", latin: "M", alternates: "", gdValue: 90),
+        EnochianLetter(order: 9, name: "Gon", nameJa: "ゴン", latin: "I", alternates: "YJ", gdValue: 60),
+        EnochianLetter(order: 10, name: "Na", nameJa: "ナ", latin: "H", alternates: "", gdValue: 1),
+        EnochianLetter(order: 11, name: "Ur", nameJa: "ウル", latin: "L", alternates: "", gdValue: 40),
+        EnochianLetter(order: 12, name: "Mals", nameJa: "マルス", latin: "P", alternates: "", gdValue: 8),
+        EnochianLetter(order: 13, name: "Ger", nameJa: "ゲル", latin: "Q", alternates: "", gdValue: 40),
+        EnochianLetter(order: 14, name: "Drux", nameJa: "ドルクス", latin: "N", alternates: "", gdValue: 50),
+        EnochianLetter(order: 15, name: "Pal", nameJa: "パル", latin: "X", alternates: "", gdValue: 400),
+        EnochianLetter(order: 16, name: "Med", nameJa: "メド", latin: "O", alternates: "", gdValue: 30),
+        EnochianLetter(order: 17, name: "Don", nameJa: "ドン", latin: "R", alternates: "", gdValue: 100),
+        EnochianLetter(order: 18, name: "Ceph", nameJa: "ケフ", latin: "Z", alternates: "", gdValue: 1),
+        EnochianLetter(order: 19, name: "Van", nameJa: "ヴァン", latin: "V", alternates: "UW", gdValue: 70),
+        EnochianLetter(order: 20, name: "Fam", nameJa: "ファム", latin: "S", alternates: "", gdValue: 10),
+        EnochianLetter(order: 21, name: "Gisg", nameJa: "ギスグ", latin: "T", alternates: "", gdValue: 400),
     ]
 
     // MARK: - Dictionary (Enochian → English / Japanese)

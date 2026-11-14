@@ -11,6 +11,8 @@ struct Copy {
     let unavailableTitle: String // AI非対応端末の見出し
     let unavailableBody: String
     let permissionDenied: String
+    let speechFailed: String     // 録音・認識を始められなかったとき
+    let typeHere: String         // 文字入力欄
     let angelLabel: String
     let youLabel: String
     let persona: String          // Foundation Models への人格指示（英語で与える）
@@ -27,6 +29,8 @@ struct Copy {
         unavailableTitle: "この端末では天使と交信できません",
         unavailableBody: "Apple Intelligence に対応した端末（iOS 26）が必要です。",
         permissionDenied: "マイクと音声認識の許可が必要です。設定から有効にしてください。",
+        speechFailed: "いまは声を受け取れませんでした。下の欄に文字で書いて送ることもできます。",
+        typeHere: "文字で話しかける",
         angelLabel: "天使",
         youLabel: "あなた",
         persona: personaText,
@@ -44,6 +48,8 @@ struct Copy {
         unavailableTitle: "This device cannot commune",
         unavailableBody: "A device with Apple Intelligence (iOS 26) is required.",
         permissionDenied: "Microphone and speech recognition access are required. Enable them in Settings.",
+        speechFailed: "Your voice could not be heard just now. You can also type below and send it.",
+        typeHere: "Or type to the angel",
         angelLabel: "Angel",
         youLabel: "You",
         persona: personaText,
